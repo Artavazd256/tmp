@@ -106,6 +106,8 @@ function createSwitch(text, macText) {
     boxMac.y += middleOffset + info.y+ info.height;
     mac.y += middleOffset + info.y+ info.height;
     wall.height = info.height + box.height + boxMac.height;
+    wall.buttonMode = true;
+    wall.interactive = true;
 }
 
 
