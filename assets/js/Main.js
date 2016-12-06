@@ -54,9 +54,9 @@ function routerMouseOut() {
 
 function routerMouseMove() {
     if (this.dragging) {
-        var newPosition = this.data.getLocalPosition(this.parent);
-        this.position.x = newPosition.x - this.dragPoint.x;
-        this.position.y = newPosition.y - this.dragPoint.y;
+        var newPosition = this.data.getLocalPosition(this.parent.parent);
+        this.parent.position.x = newPosition.x - this.dragPoint.x;
+        this.parent.position.y = newPosition.y - this.dragPoint.y;
     }
 
 }
@@ -65,9 +65,9 @@ function routerOnDragStart (event) {
     this.data = event.data;
     this.texture = routerHoverTexture;
     this.dragging = true;
-    this.dragPoint = event.data.getLocalPosition(this.parent);
-    this.dragPoint.x -= this.position.x;
-    this.dragPoint.y -= this.position.y;
+    this.dragPoint = event.data.getLocalPosition(this.parent.parent);
+    this.dragPoint.x -= this.parent.position.x;
+    this.dragPoint.y -= this.parent.position.y;
 }
 
 function routerOnDragEnd() {
@@ -108,20 +108,30 @@ function switchOnDragEnd() {
 
 /// end of switch
 
-function createRouter() {
+function createRouter(macText) {
     // router init
-    router = new PIXI.Sprite(routerTexture);
-    router.interactive = true;
-    router.buttonMode = true;
-    router.mouseover = routerMouseOver;
-    router.mouseout = routerMouseOut;
-    router.mousedown = routerOnDragStart;
-    router.touchstart = routerOnDragStart;
-    router.mouseup = routerOnDragEnd;
-    router.mouseupoutside = routerOnDragEnd;
-    router.touchendoutside = routerOnDragEnd;
-    router.touchend = routerOnDragEnd;
-    router.mousemove = routerMouseMove;
+    router = new PIXI.Container();
+    var routerSprite = new PIXI.Sprite(routerTexture);
+    routerSprite.interactive = true;
+    routerSprite.buttonMode = true;
+    routerSprite.mouseover = routerMouseOver;
+    routerSprite.mouseout = routerMouseOut;
+    routerSprite.mousedown = routerOnDragStart;
+    routerSprite.touchstart = routerOnDragStart;
+    routerSprite.mouseup = routerOnDragEnd;
+    routerSprite.mouseupoutside = routerOnDragEnd;
+    routerSprite.touchendoutside = routerOnDragEnd;
+    routerSprite.touchend = routerOnDragEnd;
+    routerSprite.mousemove = routerMouseMove;
+    var mac = new PIXI.Text(macText, {fontFamily : 'Arial', fontSize: '12px Snippet' , fill : 'bleck', align : 'center'});
+    var boxMac = createBox("mac", 0x00D2FF, mac.width+4, mac.height);
+    router.addChild(routerSprite);
+    router.addChild(boxMac);
+    boxMac.y += 36;
+    mac.y += 36;
+    boxMac.x -=  29
+    mac.x -= 29;
+    router.addChild(mac);
 }
 
 function createSwitch(text, macText, portNumber) {
@@ -209,7 +219,7 @@ window.onload = function () {
         tweedTexture = res['tweed'].texture;
 
         // router init
-        createRouter();
+        createRouter("9C:D6:43:83:12:7B");
         // create siwtch
         createSwitch("D-Link DES-10 Fast Ethernet\n Switch", "00:26:A5:39:6E:80", 8);
 
