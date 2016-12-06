@@ -15,6 +15,8 @@ var portStatus = true;
 var portEnableColor = 0x1EE22C;
 var portDisableColor = 0xFFFF00;
 var swPort = null;
+var routerPort = null;
+var line = null;
 
 function createBox (name, color, width, height, border) {
     var graphics = new PIXI.Graphics();
@@ -24,6 +26,33 @@ function createBox (name, color, width, height, border) {
     graphics.name = name;
     graphics.hitArea = new PIXI.Rectangle(0, 0, width, height);
     return graphics;
+}
+
+function getGlobalPosition(element) {
+    var x = element.worldTransform.tx;
+    var y = element.worldTransform.ty;
+    return {x:x, y: y};
+};
+
+
+function createLine() {
+    line = new PIXI.Graphics();
+    line.lineStyle(4, 0x0, 1);
+    var from = getGlobalPosition(swPort);
+    var to = getGlobalPosition(router);
+    line.moveTo(from.x, from.y);
+    line.lineTo(to.x, to.y);
+    line.endFill();
+}
+
+function updateLIne() {
+    line.clear();
+    line.lineStyle(7, 0x808080, 1);
+    var from = getGlobalPosition(swPort);
+    var to = getGlobalPosition(routerPort);
+    line.moveTo(from.x+swPort.width, from.y+ swPort.height/2);
+    line.lineTo(to.x, to.y+routerPort.height/2);
+    line.endFill();
 }
 
 function getSpriteByGraphics (graphics) {
@@ -126,6 +155,7 @@ function createRouter(macText) {
     routerSprite.mousemove = routerMouseMove;
     var mac = new PIXI.Text(macText, {fontFamily : 'Arial', fontSize: '12px Snippet' , fill : 'bleck', align : 'center'});
     var boxMac = createBox("mac", 0x00D2FF, mac.width+4, mac.height);
+    routerPort = boxMac;
     router.addChild(routerSprite);
     router.addChild(boxMac);
     boxMac.y += 36;
@@ -223,16 +253,19 @@ window.onload = function () {
         createRouter("9C:D6:43:83:12:7B");
         // create siwtch
         createSwitch("D-Link DES-10 Fast Ethernet\n Switch", "00:26:A5:39:6E:80", 8);
-
+        // create line
+        createLine();
         sw.y += 100;
 
         router.x = 400;
         router.y = 200;
         stage.addChild(router);
         stage.addChild(sw);
+        stage.addChild(line);
 
         update();
         function update() {
+            updateLIne();
             renderer.render(stage);
             requestAnimationFrame(update);
         }
