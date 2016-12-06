@@ -14,6 +14,7 @@ var tmp1 = null;
 var portStatus = true;
 var portEnableColor = 0x1EE22C;
 var portDisableColor = 0xFFFF00;
+var swPort = null;
 
 function createBox (name, color, width, height, border) {
     var graphics = new PIXI.Graphics();
@@ -144,10 +145,10 @@ function createSwitch(text, macText, portNumber) {
     var mac = new PIXI.Text(macText, {fontFamily : 'Arial', fontSize: '12px Snippet' , fill : 'bleck', align : 'center'});
     var boxMac = createBox("mac", 0x00D2FF, info.width+4, mac.height);
     var portText = new PIXI.Text(portNumber, {fontFamily : 'Arial', fontSize: '18px Snippet' , fill : 'bleck', align : 'center'});
-    var port = createBox("port", portEnableColor, portText.width+4, portText.height);
-    port.interactive = true;
-    port.buttonMode = true;
-    port.mousedown = changePortStatus;
+    swPort = createBox("swPort", portEnableColor, portText.width+4, portText.height);
+    swPort.interactive = true;
+    swPort.buttonMode = true;
+    swPort.mousedown = changePortStatus;
     var arrow  = new PIXI.Sprite(switchArrowTexture);
     arrow.width = 50;
     arrow.height = 35;
@@ -160,7 +161,7 @@ function createSwitch(text, macText, portNumber) {
     sw.addChild(info);
     sw.addChild(boxMac);
     sw.addChild(mac);
-    sw.addChild(port);
+    sw.addChild(swPort);
     sw.addChild(portText);
 
     arrow.y -= topOffset + 30;
@@ -172,9 +173,9 @@ function createSwitch(text, macText, portNumber) {
     boxMac.y += middleOffset + info.y+ info.height;
     mac.y += middleOffset + info.y+ info.height;
     wall.height = info.height + box.height + boxMac.height;
-    port.y = wall.height/2-(port.height/2);
+    swPort.y = wall.height/2-(swPort.height/2);
     portText.y = wall.height/2 - (portText.height/2);
-    port.x = wall.width+2;
+    swPort.x = wall.width+2;
     portText.x = wall.width+2+2;
     wall.buttonMode = true;
     wall.interactive = true;
