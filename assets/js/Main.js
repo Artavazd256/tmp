@@ -11,6 +11,9 @@ var renderer = null;
 var stage  = null;
 var tmp = null;
 var tmp1 = null;
+var portStatus = true;
+var portEnableColor = 0x1EE22C;
+var portDisableColor = 0xFFFF00;
 
 function createBox (name, color, width, height, border) {
     var graphics = new PIXI.Graphics();
@@ -26,6 +29,18 @@ function getSpriteByGraphics (graphics) {
     var texture = graphics.generateCanvasTexture();
     var sprite = new PIXI.Sprite(texture);
     return sprite;
+}
+
+function changePortStatus() {
+    var width = this.width;
+    var height = this.height;
+    portStatus = portStatus == true ? false : true;
+    var color = portStatus == true ? portEnableColor : portDisableColor;
+    this.clear();
+    this.beginFill(color);
+    this.drawRect(0, 0, width, height);
+    this.endFill();
+    this.hitArea = new PIXI.Rectangle(0, 0, width, height);
 }
 
 
@@ -119,7 +134,10 @@ function createSwitch(text, macText, portNumber) {
     var mac = new PIXI.Text(macText, {fontFamily : 'Arial', fontSize: '12px Snippet' , fill : 'bleck', align : 'center'});
     var boxMac = createBox("mac", 0x00D2FF, info.width+4, mac.height);
     var portText = new PIXI.Text(portNumber, {fontFamily : 'Arial', fontSize: '18px Snippet' , fill : 'bleck', align : 'center'});
-    var port = createBox("port", 0x1EE22C, portText.width+4, portText.height);
+    var port = createBox("port", portEnableColor, portText.width+4, portText.height);
+    port.interactive = true;
+    port.buttonMode = true;
+    port.mousedown = changePortStatus;
     var arrow  = new PIXI.Sprite(switchArrowTexture);
     arrow.width = 50;
     arrow.height = 35;
