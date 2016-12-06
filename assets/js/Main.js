@@ -60,6 +60,39 @@ function routerOnDragEnd() {
     this.data = null;
 }
 
+////// switch
+function switchMouseOver() {
+    //this.texture = routerHoverTexture;
+}
+
+function switchMouseOut() {
+    //this.texture = routerTexture;
+}
+
+function switchMouseMove() {
+    if (this.dragging) {
+        var newPosition = this.data.getLocalPosition(this.parent.parent);
+        this.parent.position.x = newPosition.x - this.dragPoint.x;
+        this.parent.position.y = newPosition.y - this.dragPoint.y;
+    }
+
+}
+
+function switchOnDragStart (event) {
+    this.data = event.data;
+    this.dragging = true;
+    this.dragPoint = event.data.getLocalPosition(this.parent.parent);
+    this.dragPoint.x -= this.parent.position.x;
+    this.dragPoint.y -= this.parent.position.y;
+}
+
+function switchOnDragEnd() {
+    this.dragging = false;
+    this.data = null;
+}
+
+/// end of switch
+
 function createRouter() {
     // router init
     router = new PIXI.Sprite(routerTexture);
@@ -76,7 +109,7 @@ function createRouter() {
     router.mousemove = routerMouseMove;
 }
 
-function createSwitch(text, macText) {
+function createSwitch(text, macText, portNumber) {
     var topOffset = 10;
     var middleOffset = 6;
     sw = new PIXI.Container();
@@ -85,6 +118,8 @@ function createSwitch(text, macText) {
     var box = createBox("info", 0x00D2FF, info.width+4, info.height);
     var mac = new PIXI.Text(macText, {fontFamily : 'Arial', fontSize: '12px Snippet' , fill : 'bleck', align : 'center'});
     var boxMac = createBox("mac", 0x00D2FF, info.width+4, mac.height);
+    var portText = new PIXI.Text(portNumber, {fontFamily : 'Arial', fontSize: '18px Snippet' , fill : 'bleck', align : 'center'});
+    var port = createBox("port", 0x1EE22C, portText.width+4, portText.height);
     var arrow  = new PIXI.Sprite(switchArrowTexture);
     arrow.width = 50;
     arrow.height = 35;
@@ -97,6 +132,9 @@ function createSwitch(text, macText) {
     sw.addChild(info);
     sw.addChild(boxMac);
     sw.addChild(mac);
+    sw.addChild(port);
+    sw.addChild(portText);
+
     arrow.y -= topOffset + 30;
     arrow.x = (sw.width/2) - (arrow.width/2);
     box.x = (sw.width/2) - (box.width/2);
@@ -106,8 +144,21 @@ function createSwitch(text, macText) {
     boxMac.y += middleOffset + info.y+ info.height;
     mac.y += middleOffset + info.y+ info.height;
     wall.height = info.height + box.height + boxMac.height;
+    port.y = wall.height/2-(port.height/2);
+    portText.y = wall.height/2 - (portText.height/2);
+    port.x = wall.width+2;
+    portText.x = wall.width+2+2;
     wall.buttonMode = true;
     wall.interactive = true;
+    wall.mouseover = switchMouseOver;
+    wall.mouseout = switchMouseOut;
+    wall.mousedown = switchOnDragStart;
+    wall.touchstart = switchOnDragStart;
+    wall.mouseup = switchOnDragEnd;
+    wall.mouseupoutside = switchOnDragEnd;
+    wall.touchendoutside =switchOnDragEnd;
+    wall.touchend = switchOnDragEnd;
+    wall.mousemove = switchMouseMove;
 }
 
 
@@ -142,7 +193,7 @@ window.onload = function () {
         // router init
         createRouter();
         // create siwtch
-        createSwitch("D-Link DES-10 Fast Ethernet\n Switch", "00:26:A5:39:6E:80");
+        createSwitch("D-Link DES-10 Fast Ethernet\n Switch", "00:26:A5:39:6E:80", 8);
 
         sw.y += 100;
 
