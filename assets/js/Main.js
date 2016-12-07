@@ -17,6 +17,8 @@ var portDisableColor = 0xFFFF00;
 var swPort = null;
 var routerPort = null;
 var line = null;
+var lineColor = null;
+var speed = null;
 
 function createBox (name, color, width, height, border) {
     var graphics = new PIXI.Graphics();
@@ -32,7 +34,7 @@ function getGlobalPosition(element) {
     var x = element.worldTransform.tx;
     var y = element.worldTransform.ty;
     return {x:x, y: y};
-};
+}
 
 
 function createLine() {
@@ -43,15 +45,26 @@ function createLine() {
     line.moveTo(from.x, from.y);
     line.lineTo(to.x, to.y);
     line.endFill();
+    line.buttonMode = true;
+    line.interactive = true;
+    line.mousedown = lineMouseDown;
+}
+
+function lineMouseDown() {
+
 }
 
 function updateLIne() {
+    var size = 5;
     line.clear();
-    line.lineStyle(7, 0x808080, 1);
+    line.beginFill(0x808080);
+    line.lineStyle(6, 0x808080, 1);
     var from = getGlobalPosition(swPort);
     var to = getGlobalPosition(routerPort);
     line.moveTo(from.x+swPort.width, from.y+ swPort.height/2);
     line.lineTo(to.x, to.y+routerPort.height/2);
+    //line.lineTo(to.x, to.y+routerPort.height/2+size);
+    //line.lineTo(from.x+swPort.width, from.y+ swPort.height/2+size);
     line.endFill();
 }
 
@@ -73,6 +86,31 @@ function changePortStatus() {
     this.hitArea = new PIXI.Rectangle(0, 0, width, height);
 }
 
+function updateSpeedBoxPosition() {
+    var swP = getGlobalPosition(swPort);
+    var roP = getGlobalPosition(routerPort);
+    if(swP.x >= roP.x)  {
+        var x = (Math.abs(swP.x - roP.x)/2)+roP.x;
+    } else {
+        var x = (Math.abs(swP.x - roP.x)/2)+swP.x;
+    }
+
+    if(swP.y >= roP.y)  {
+        var y = (Math.abs(swP.y - roP.y)/2)+roP.y;
+    } else {
+        var y = (Math.abs(swP.y - roP.y)/2)+swP.y;
+    }
+    speed.x = x;
+    speed.y = y;
+}
+
+function createSpeed(speedText) {
+    speed = new PIXI.Container();
+    var text = new PIXI.Text(speedText, {fontFamily : 'Arial', fontSize: '12px Snippet' , fill : 'bleck', align : 'center'} );
+    var speedBox = createBox("speedBox", 0x00D2FF, text.width, text.height);
+    speed.addChild(speedBox);
+    speed.addChild(text);
+}
 
 function routerMouseOver() {
     this.texture = routerHoverTexture;
@@ -255,6 +293,8 @@ window.onload = function () {
         createSwitch("D-Link DES-10 Fast Ethernet\n Switch", "00:26:A5:39:6E:80", 8);
         // create line
         createLine();
+        // create speed
+        createSpeed("100000000");
         sw.y += 100;
 
         router.x = 400;
@@ -262,10 +302,12 @@ window.onload = function () {
         stage.addChild(router);
         stage.addChild(sw);
         stage.addChild(line);
+        stage.addChild(speed);
 
         update();
         function update() {
             updateLIne();
+            updateSpeedBoxPosition();
             renderer.render(stage);
             requestAnimationFrame(update);
         }
