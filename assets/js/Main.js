@@ -123,6 +123,9 @@ function routerMouseOut() {
 function routerMouseMove() {
     if (this.dragging) {
         var newPosition = this.data.getLocalPosition(this.parent.parent);
+        if(newPosition.y <= this.height/2 || newPosition.x <= this.width/2 || newPosition.x >= window.innerWidth - this.width || newPosition.y >= window.innerHeight-this.height) {
+            return;
+        }
         this.parent.position.x = newPosition.x - this.dragPoint.x;
         this.parent.position.y = newPosition.y - this.dragPoint.y;
     }
