@@ -19,6 +19,42 @@ var routerPort = null;
 var line = null;
 var lineColor = null;
 var speed = null;
+var tableFlat = false;
+var switchInfo = null;
+
+$.post( "switchInfo.php", { routerMac : "9C:D6:43:83:12:7B" }, function( data ) {
+    console.log(data);
+    switchInfo = JSON.parse(data);
+});
+
+
+function splitText(text, n) {
+    var t = '';
+    var counter = 0;
+    for(var i = 0; i < text.length; i++) {
+        t += text[i];
+        if(counter === n) {
+            counter = 0;
+            t += "\n";
+        }
+        counter++;
+    }
+    return t;
+};
+
+
+
+function getSwtichInfo() {
+    $.post( "switchInfo.php", { mac : "00:26:5A:39:6E:80" }, function( data ) {
+        console.log(data);
+        var div = document.createElement("div");
+        div.innerHTML = data;
+        $(div).attr("id",'switchInfo');
+        $('body').append(div);
+    });
+
+}
+
 
 function createBox (name, color, width, height, border) {
     var graphics = new PIXI.Graphics();
@@ -165,6 +201,7 @@ function switchMouseMove() {
 }
 
 function switchOnDragStart (event) {
+    getSwtichInfo();
     this.data = event.data;
     this.dragging = true;
     this.dragPoint = event.data.getLocalPosition(this.parent.parent);
@@ -207,6 +244,7 @@ function createRouter(macText) {
 }
 
 function createSwitch(text, macText, portNumber) {
+    text = splitText(text, 24);
     var topOffset = 10;
     var middleOffset = 6;
     sw = new PIXI.Container();
@@ -293,7 +331,7 @@ window.onload = function () {
         // router init
         createRouter("9C:D6:43:83:12:7B");
         // create siwtch
-        createSwitch("D-Link DES-10 Fast Ethernet\n Switch", "00:26:A5:39:6E:80", 8);
+        createSwitch(switchInfo.name, switchInfo.MAC, 8);
         // create line
         createLine();
         // create speed
@@ -316,7 +354,5 @@ window.onload = function () {
         }
 
     }
-
-
 
 };
