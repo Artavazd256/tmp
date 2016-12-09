@@ -11,7 +11,6 @@ var renderer = null;
 var stage  = null;
 var tmp = null;
 var tmp1 = null;
-var portStatus = true;
 var portEnableColor = 0x1EE22C;
 var portDisableColor = 0xFFFF00;
 var swPort = null;
@@ -21,6 +20,7 @@ var lineColor = null;
 var speed = null;
 var tableFlat = false;
 var switchInfo = null;
+var netList = [];
 
 $.post( "switchInfo.php", { routerMac : "9C:D6:43:83:12:7B" }, function( data ) {
     console.log(data);
@@ -113,8 +113,8 @@ function getSpriteByGraphics (graphics) {
 function changePortStatus() {
     var width = this.width;
     var height = this.height;
-    portStatus = portStatus == true ? false : true;
-    var color = portStatus == true ? portEnableColor : portDisableColor;
+    this.portStatus = this.portStatus == true ? false : true;
+    var color = this.portStatus == true ? portEnableColor : portDisableColor;
     this.clear();
     this.beginFill(color);
     this.drawRect(0, 0, width, height);
@@ -243,7 +243,7 @@ function createRouter(macText) {
     router.addChild(mac);
 }
 
-function createSwitch(text, macText, portNumber) {
+function createSwitch(text, macText, portNumber, twoPortNumber) {
     text = splitText(text, 24);
     var topOffset = 10;
     var middleOffset = 6;
@@ -255,9 +255,17 @@ function createSwitch(text, macText, portNumber) {
     var boxMac = createBox("mac", 0x00D2FF, info.width+4, mac.height);
     var portText = new PIXI.Text(portNumber, {fontFamily : 'Arial', fontSize: '18px Snippet' , fill : 'bleck', align : 'center'});
     swPort = createBox("swPort", portEnableColor, portText.width+4, portText.height);
+    var twoPortText = new PIXI.Text(twoPortNumber, {fontFamily : 'Arial', fontSize: '18px Snippet' , fill : 'bleck', align : 'center'});
+    var twoSwPort = createBox("twoSwPort", portEnableColor, twoPortText.width+4, twoPortText.height);
+    twoSwPort.interactive = true;
+    twoSwPort.buttonMode = true;
+    twoSwPort.mousedown = changePortStatus;
+    twoSwPort.portStatus = true;
     swPort.interactive = true;
+    swPort.portStatus = true;
     swPort.buttonMode = true;
     swPort.mousedown = changePortStatus;
+    swPort.portStatus = true;
     var arrow  = new PIXI.Sprite(switchArrowTexture);
     arrow.width = 50;
     arrow.height = 35;
@@ -271,8 +279,11 @@ function createSwitch(text, macText, portNumber) {
     sw.addChild(boxMac);
     sw.addChild(mac);
     sw.addChild(swPort);
+    if(twoPortNumber !== undefined) {
+        sw.addChild(twoSwPort);
+        sw.addChild(twoPortText);
+    }
     sw.addChild(portText);
-
     arrow.y -= topOffset + 30;
     arrow.x = (sw.width/2) - (arrow.width/2);
     box.x = (sw.width/2) - (box.width/2);
@@ -286,6 +297,10 @@ function createSwitch(text, macText, portNumber) {
     portText.y = wall.height/2 - (portText.height/2);
     swPort.x = wall.width+2;
     portText.x = wall.width+2+2;
+    twoSwPort.y = wall.height/2-(swPort.height/2);
+    twoPortText.y = wall.height/2 - (portText.height/2);
+    twoPortText.x -= twoSwPort.width +2 - twoPortText.width/2;
+    twoSwPort.x -=   twoSwPort.width +2;
     wall.buttonMode = true;
     wall.interactive = true;
     wall.mouseover = switchMouseOver;
@@ -332,7 +347,7 @@ window.onload = function () {
         // router init
         createRouter(routerMac);
         // create siwtch
-        createSwitch(switchInfo.name, switchInfo.MAC, switchInfo.number);
+        createSwitch(switchInfo.name, switchInfo.MAC, switchInfo.number, 9);
         // create line
         createLine();
         // create speed
