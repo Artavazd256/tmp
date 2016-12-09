@@ -16,16 +16,14 @@ var portDisableColor = 0xFFFF00;
 var swPort = null;
 var routerPort = null;
 var line = null;
+var line2 = null;
 var lineColor = null;
 var speed = null;
-var tableFlat = false;
 var switchInfo = null;
-var netList = [];
+var twoSwPort = null;
+var tableFlag = false;
 
-$.post( "switchInfo.php", { routerMac : "9C:D6:43:83:12:7B" }, function( data ) {
-    console.log(data);
-    switchInfo = JSON.parse(data);
-});
+
 
 
 function splitText(text, n) {
@@ -45,14 +43,13 @@ function splitText(text, n) {
 
 
 function getSwtichInfo() {
-    $.post( "switchInfo.php", { mac : "00:26:5A:39:6E:80" }, function( data ) {
-        console.log(data);
-        var div = document.createElement("div");
-        div.innerHTML = data;
-        $(div).attr("id",'switchInfo');
-        $('body').append(div);
-    });
-
+    if(tableFlag) {
+        $('#switchInfo').show();
+        tableFlag = false;
+    } else {
+        $('#switchInfo').hide();
+        tableFlag = true;
+    }
 }
 
 
@@ -74,7 +71,7 @@ function getGlobalPosition(element) {
 
 
 function createLine() {
-    line = new PIXI.Graphics();
+    var line = new PIXI.Graphics();
     line.lineStyle(4, 0x0, 1);
     var from = getGlobalPosition(swPort);
     var to = getGlobalPosition(router);
@@ -84,6 +81,7 @@ function createLine() {
     line.buttonMode = true;
     line.interactive = true;
     line.mousedown = lineMouseDown;
+    return line;
 }
 
 function lineMouseDown() {
@@ -254,7 +252,7 @@ function createSwitch(text, macText, portNumber, twoPortNumber) {
     var mac = new PIXI.Text(macText, {fontFamily : 'Arial', fontSize: '12px Snippet' , fill : 'bleck', align : 'center'});
     var boxMac = createBox("mac", 0x00D2FF, info.width+4, mac.height);
     var portText = new PIXI.Text(portNumber, {fontFamily : 'Arial', fontSize: '18px Snippet' , fill : 'bleck', align : 'center'});
-    swPort = createBox("swPort", portEnableColor, portText.width+4, portText.height);
+    var swPort = createBox("swPort", portEnableColor, portText.width+4, portText.height);
     var twoPortText = new PIXI.Text(twoPortNumber, {fontFamily : 'Arial', fontSize: '18px Snippet' , fill : 'bleck', align : 'center'});
     var twoSwPort = createBox("twoSwPort", portEnableColor, twoPortText.width+4, twoPortText.height);
     twoSwPort.interactive = true;
@@ -312,10 +310,35 @@ function createSwitch(text, macText, portNumber, twoPortNumber) {
     wall.touchendoutside =switchOnDragEnd;
     wall.touchend = switchOnDragEnd;
     wall.mousemove = switchMouseMove;
+    return {port1 : swPort, port2 : twoSwPort};
 }
 
 
 window.onload = function () {
+    var routerMac = $('#macForSNMP').attr('value');
+
+    $.post( "switchInfo.php", { routerMac : routerMac }, function( data ) {
+        switchInfo = JSON.parse(data);
+        $.post( "switchInfo.php", { mac : switchInfo.MAC }, function( data ) {
+            console.log(data);
+            var div = document.createElement("div");
+            div.innerHTML = data;
+            $(div).attr("id",'switchInfo');
+            $('body').append(div);
+        });
+/*        $.post( "switchInfo.php", { connectionMac : switchInfo.MAC}, function( data ) {
+            try {
+                swTwoObjectJsonData = JSON.parse(data);
+                $.post( "switchInfo.php", { switchMac : swTwoObjectJsonData.mac_from}, function( data ) {
+                    console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+                    console.log(swTwoObjectJsonData.mac_to);
+                    console.log(data);
+                });
+            } catch(SyntaxError) {
+            }
+        });*/
+    });
+
     renderer = PIXI.autoDetectRenderer(window.innerWidth, window.innerHeight, {
         backgroundColor: 0xFFFFFF,
         resolution: window.devicePixelRatio || 1
@@ -343,13 +366,21 @@ window.onload = function () {
         switchArrowTexture =  res['switchArrow'].texture;
         tweedTexture = res['tweed'].texture;
         // Get router mac address
-        var routerMac = $('#macForSNMP').attr('value');
+
         // router init
         createRouter(routerMac);
         // create siwtch
-        createSwitch(switchInfo.name, switchInfo.MAC, switchInfo.number, 9);
+/*        if(swTwoObjectJsonData != null) {
+            var obj = createSwitch(switchInfo.name, switchInfo.MAC, switchInfo.number, swTwoObjectJsonData.port_to);
+            swPort = obj.port1;
+            twoSwPort = obj.port2;
+        } else {*/
+            var obj = createSwitch(switchInfo.name, switchInfo.MAC, switchInfo.number);
+            swPort = obj.port1;
+            twoSwPort = obj.port2;
+/*        }*/
         // create line
-        createLine();
+        line = createLine();
         // create speed
         createSpeed(switchInfo.ifspeed);
         sw.y += 100;

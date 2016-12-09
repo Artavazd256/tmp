@@ -16,7 +16,7 @@
 function getSwitchInfo() {
 global $dbh;
 $mac = $_POST['mac']; 
-//$mac = '00:26:5A:39:6E:80'; 
+//$mac = '00:26:5A:39:6E:80';
 
 echo "<table>";
 echo "<thead>";
