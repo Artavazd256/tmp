@@ -327,11 +327,12 @@ window.onload = function () {
         routerHoverTexture =  res['routerHover'].texture;
         switchArrowTexture =  res['switchArrow'].texture;
         tweedTexture = res['tweed'].texture;
-
+        // Get router mac address
+        var routerMac = $('#macForSNMP').attr('value');
         // router init
-        createRouter("9C:D6:43:83:12:7B");
+        createRouter(routerMac);
         // create siwtch
-        createSwitch(switchInfo.name, switchInfo.MAC, 8);
+        createSwitch(switchInfo.name, switchInfo.MAC, switchInfo.number);
         // create line
         createLine();
         // create speed
