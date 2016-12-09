@@ -336,7 +336,7 @@ window.onload = function () {
         // create line
         createLine();
         // create speed
-        createSpeed("100000000");
+        createSpeed(switchInfo.ifspeed);
         sw.y += 100;
 
         router.x = 400;
