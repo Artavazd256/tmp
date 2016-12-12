@@ -19,10 +19,12 @@ var line = null;
 var line2 = null;
 var lineColor = null;
 var speed = null;
-var switchInfo = null;
+var switchInfo1 = null;
 var twoSwPort = null;
-var tableFlag = false;
-
+var tableFlag = true;
+var div = null;
+var lineList = [];
+var swTwoObjectJsonData = null;
 
 
 
@@ -42,12 +44,13 @@ function splitText(text, n) {
 
 
 
-function getSwtichInfo() {
+function getSwtichInfo(mac) {
     if(tableFlag) {
-        $('#switchInfo').show();
+        showSwitchInfoByMac(mac);
+        $(div).show();
         tableFlag = false;
     } else {
-        $('#switchInfo').hide();
+        $(div).hide();
         tableFlag = true;
     }
 }
@@ -70,17 +73,17 @@ function getGlobalPosition(element) {
 }
 
 
-function createLine() {
+function createLine(from, to) {
     var line = new PIXI.Graphics();
     line.lineStyle(4, 0x0, 1);
-    var from = getGlobalPosition(swPort);
-    var to = getGlobalPosition(router);
     line.moveTo(from.x, from.y);
     line.lineTo(to.x, to.y);
     line.endFill();
     line.buttonMode = true;
     line.interactive = true;
     line.mousedown = lineMouseDown;
+    line.from = from;
+    line.to = to;
     return line;
 }
 
@@ -88,18 +91,22 @@ function lineMouseDown() {
 
 }
 
-function updateLIne() {
+function updateLine() {
     var size = 5;
-    line.clear();
-    line.beginFill(0x808080);
-    line.lineStyle(6, 0x808080, 1);
-    var from = getGlobalPosition(swPort);
-    var to = getGlobalPosition(routerPort);
-    line.moveTo(from.x+swPort.width, from.y+ swPort.height/2);
-    line.lineTo(to.x, to.y+routerPort.height/2);
-    //line.lineTo(to.x, to.y+routerPort.height/2+size);
-    //line.lineTo(from.x+swPort.width, from.y+ swPort.height/2+size);
-    line.endFill();
+    for(var i = 0; i < lineList.length; i++) {
+        lineList[i].clear();
+        lineList[i].beginFill(0x808080);
+        lineList[i].lineStyle(6, 0x808080, 1);
+        var from = getGlobalPosition(lineList[i].from);
+        var to = getGlobalPosition(lineList[i].to);
+        lineList[i].moveTo(from.x, from.y); // TODO the case need to improve
+        lineList[i].lineTo(to.x, to.y); // TODO the case need to improve
+        //line.lineTo(to.x, to.y+routerPort.height/2+size);
+        //line.lineTo(from.x+swPort.width, from.y+ swPort.height/2+size);
+        lineList[i].endFill();
+        updateSpeedBoxPosition(lineList[i].from, lineList[i].to, lineList[i].speed);
+
+    }
 }
 
 function getSpriteByGraphics (graphics) {
@@ -120,30 +127,32 @@ function changePortStatus() {
     this.hitArea = new PIXI.Rectangle(0, 0, width, height);
 }
 
-function updateSpeedBoxPosition() {
-    var swP = getGlobalPosition(swPort);
-    var roP = getGlobalPosition(routerPort);
-    if(swP.x >= roP.x)  {
-        var x = (Math.abs(swP.x - roP.x)/2)+roP.x;
+function updateSpeedBoxPosition(swPort1, swPort2, speed) {
+    var from = getGlobalPosition(swPort1);
+    var to = getGlobalPosition(swPort2);
+    if(from.x >= to.x)  {
+        var x = (Math.abs(from.x - to.x)/2)+to.x;
     } else {
-        var x = (Math.abs(swP.x - roP.x)/2)+swP.x;
+        var x = (Math.abs(from.x - to.x)/2)+from.x;
     }
 
-    if(swP.y >= roP.y)  {
-        var y = (Math.abs(swP.y - roP.y)/2)+roP.y;
+    if(from.y >= to.y)  {
+        var y = (Math.abs(from.y - to.y)/2)+to.y;
     } else {
-        var y = (Math.abs(swP.y - roP.y)/2)+swP.y;
+        var y = (Math.abs(from.y - to.y)/2)+from.y;
     }
     speed.x = x;
     speed.y = y;
 }
 
-function createSpeed(speedText) {
-    speed = new PIXI.Container();
+function createSpeed(speedText, line) {
+    var speed = new PIXI.Container();
     var text = new PIXI.Text(speedText, {fontFamily : 'Arial', fontSize: '12px Snippet' , fill : 'bleck', align : 'center'} );
     var speedBox = createBox("speedBox", 0x00D2FF, text.width, text.height);
     speed.addChild(speedBox);
     speed.addChild(text);
+    line.speed = speed;
+    return speed;
 }
 
 function routerMouseOver() {
@@ -199,7 +208,7 @@ function switchMouseMove() {
 }
 
 function switchOnDragStart (event) {
-    getSwtichInfo();
+    getSwtichInfo(this.parent.name);
     this.data = event.data;
     this.dragging = true;
     this.dragPoint = event.data.getLocalPosition(this.parent.parent);
@@ -216,7 +225,7 @@ function switchOnDragEnd() {
 
 function createRouter(macText) {
     // router init
-    router = new PIXI.Container();
+    var router = new PIXI.Container();
     var routerSprite = new PIXI.Sprite(routerTexture);
     routerSprite.interactive = true;
     routerSprite.buttonMode = true;
@@ -231,7 +240,6 @@ function createRouter(macText) {
     routerSprite.mousemove = routerMouseMove;
     var mac = new PIXI.Text(macText, {fontFamily : 'Arial', fontSize: '12px Snippet' , fill : 'bleck', align : 'center'});
     var boxMac = createBox("mac", 0x00D2FF, mac.width+4, mac.height);
-    routerPort = boxMac;
     router.addChild(routerSprite);
     router.addChild(boxMac);
     boxMac.y += 36;
@@ -239,13 +247,15 @@ function createRouter(macText) {
     boxMac.x -=  29
     mac.x -= 29;
     router.addChild(mac);
+    return {router: router, port: boxMac};
 }
 
 function createSwitch(text, macText, portNumber, twoPortNumber) {
     text = splitText(text, 24);
     var topOffset = 10;
     var middleOffset = 6;
-    sw = new PIXI.Container();
+    var sw = new PIXI.Container();
+    sw.name = macText;
     var info = new PIXI.Text(text, {fontFamily : 'Arial', fontSize: '12px Snippet' , fill : 'bleck', align : 'center'});
     var wall = new PIXI.Sprite(tweedTexture);
     var box = createBox("info", 0x00D2FF, info.width+4, info.height);
@@ -310,33 +320,32 @@ function createSwitch(text, macText, portNumber, twoPortNumber) {
     wall.touchendoutside =switchOnDragEnd;
     wall.touchend = switchOnDragEnd;
     wall.mousemove = switchMouseMove;
-    return {port1 : swPort, port2 : twoSwPort};
+    return {port1 : swPort, port2 : twoSwPort, switch: sw};
+}
+
+
+function showSwitchInfoByMac(mac) {
+    $.post( "switchInfo.php", { mac : mac }, function(data ) {
+        div.innerHTML = data;
+    });
 }
 
 
 window.onload = function () {
     var routerMac = $('#macForSNMP').attr('value');
+    div = document.createElement("div");
+    $('body').append(div);
+    $(div).hide();
 
-    $.post( "switchInfo.php", { routerMac : routerMac }, function( data ) {
-        switchInfo = JSON.parse(data);
-        $.post( "switchInfo.php", { mac : switchInfo.MAC }, function( data ) {
-            console.log(data);
-            var div = document.createElement("div");
-            div.innerHTML = data;
-            $(div).attr("id",'switchInfo');
-            $('body').append(div);
-        });
-/*        $.post( "switchInfo.php", { connectionMac : switchInfo.MAC}, function( data ) {
+    $.post( "switchInfo.php", { routerMac : routerMac }, function(data ) {
+        switchInfo1 = JSON.parse(data);
+        $.post( "switchInfo.php", { connectionMac : switchInfo1.MAC}, function( data ) {
             try {
+                console.log(data);
                 swTwoObjectJsonData = JSON.parse(data);
-                $.post( "switchInfo.php", { switchMac : swTwoObjectJsonData.mac_from}, function( data ) {
-                    console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-                    console.log(swTwoObjectJsonData.mac_to);
-                    console.log(data);
-                });
             } catch(SyntaxError) {
             }
-        });*/
+        });
     });
 
     renderer = PIXI.autoDetectRenderer(window.innerWidth, window.innerHeight, {
@@ -344,7 +353,7 @@ window.onload = function () {
         resolution: window.devicePixelRatio || 1
     });
     //var collision = new Bump(PIXI);
-    document.body.appendChild(renderer.view);
+    $('#view').append(renderer.view);
     stage = new PIXI.Container(0xFFFFFF, true);
 
     // resize
@@ -368,34 +377,28 @@ window.onload = function () {
         // Get router mac address
 
         // router init
-        createRouter(routerMac);
-        // create siwtch
-/*        if(swTwoObjectJsonData != null) {
-            var obj = createSwitch(switchInfo.name, switchInfo.MAC, switchInfo.number, swTwoObjectJsonData.port_to);
-            swPort = obj.port1;
-            twoSwPort = obj.port2;
-        } else {*/
-            var obj = createSwitch(switchInfo.name, switchInfo.MAC, switchInfo.number);
-            swPort = obj.port1;
-            twoSwPort = obj.port2;
-/*        }*/
+        var router = createRouter(routerMac);
+        // add router object to stage
+        stage.addChild(router.router);
+        // create switch
+        var sw = null;
+        if(swTwoObjectJsonData != null) {
+            sw = createSwitch(switchInfo1.name, switchInfo1.MAC, switchInfo1.number, swTwoObjectJsonData.port_to);
+        } else {
+            sw = createSwitch(switchInfo1.name, switchInfo1.MAC, switchInfo1.number);
+        }
+        stage.addChild(sw.switch);
         // create line
-        line = createLine();
-        // create speed
-        createSpeed(switchInfo.ifspeed);
-        sw.y += 100;
-
-        router.x = 400;
-        router.y = 200;
-        stage.addChild(router);
-        stage.addChild(sw);
+        var line = createLine(sw.port1, router.port);
         stage.addChild(line);
+        // create speed
+        var speed = createSpeed(switchInfo1.ifspeed, line);
         stage.addChild(speed);
 
+        lineList.push(line);
         update();
         function update() {
-            updateLIne();
-            updateSpeedBoxPosition();
+            updateLine();
             renderer.render(stage);
             requestAnimationFrame(update);
         }

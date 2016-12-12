@@ -1,15 +1,40 @@
 <?php
 	
-    $dbh = new PDO('mysql:host=localhost;dbname=SNMP', 'root', 'AvaG');
-    if(isset($_POST['mac'])) {
-	getSwitchInfo();	    
-    }
-    if(isset($_POST['routerMac'])) {
-	getSwitchInfoByRouterMAC();   
-    }
-    if(isset($_POST['connectionMac'])) {
-        getConnectionSwitchInfo();
-    }
+   $dbh = new PDO('mysql:host=localhost;dbname=SNMP', 'root', 'AvaG');
+
+   if(isset($_POST['mac']))
+   {
+      getSwitchInfo();	    
+   }
+   if(isset($_POST['routerMac']))
+   {
+      getSwitchInfoByRouterMAC();   
+   }
+   if(isset($_POST['connectionMac']))
+   {
+      $data = getConnectionSwitchInfo($_POST['connectionMac'], array());
+      echo json_encode($data);
+   }
+   if(isset($_POST['getSwitchInfoByMac'])) 
+   {
+      foreach($dbh->query("SELECT * FROM `tb_devices`  
+                INNER JOIN tb_interfaces 
+                ON tb_interfaces.device_id = tb_devices.id 
+                INNER JOIN tb_mac 
+                ON tb_mac.interface_id = tb_interfaces.id
+                WHERE tb_devices.MAC = '$mac'") as $row) {
+         echo "<tr style='border-bottom:1px solid black;'>";
+         echo "<td>" . $counter . "</td>"; 
+         echo "<td>" . $row['link'] . "</td>"; 
+         echo "<td>" . $row['ifspeed'] . "</td>"; 
+         echo "<td>" . $row['byte_sent'] . "</td>"; 
+         echo "<td>" . $row['byte_received'] . "</td>"; 
+         echo "</tr>";
+         $counter++;
+      }
+    
+   }
+   
 	
 
 
@@ -49,13 +74,21 @@ echo "</tbody>";
 echo "</table>";
 }
 
-function getConnectionSwitchInfo() 
+function getConnectionSwitchInfo($mac, $data) 
 {
-    global $dbh;
-    $mac = $_POST['connectionMac']; 
-    foreach($dbh->query("SELECT * FROM `tb_connections` WHERE mac_to = '$mac'") as $row) {
-	echo json_encode($row);
-    }
+   global $dbh;
+   $connection = $dbh->query("SELECT * FROM `tb_connections` WHERE mac_to = '$mac'", PDO::FETCH_ASSOC);
+   $conData = $connection->fetch();
+   $index = count($data);
+   if(empty($conData)) 
+   {
+      return $data;
+   }
+   $data[$index]['connection'] = $conData;
+   $device = $dbh->query("SELECT * FROM `tb_devices` WHERE MAC = '$mac' ", PDO::FETCH_ASSOC);
+   $devData = $device->fetch();
+   $data[$index]['device'] = $devData;
+   return getConnectionSwitchInfo($conData['mac_from'], $data);
 }
 
 
