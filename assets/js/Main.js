@@ -9,18 +9,11 @@ var switchArrowTexture = null;
 var tweedTexture = null;
 var renderer = null;
 var stage  = null;
-var tmp = null;
-var tmp1 = null;
 var portEnableColor = 0x1EE22C;
 var portDisableColor = 0xFFFF00;
-var swPort = null;
-var routerPort = null;
-var line = null;
-var line2 = null;
 var lineColor = null;
 var speed = null;
 var switchInfo1 = null;
-var twoSwPort = null;
 var tableFlag = true;
 var div = null;
 var lineList = [];
@@ -251,7 +244,6 @@ function createRouter(macText) {
 }
 
 function createSwitch(text, macText, portNumber, twoPortNumber) {
-    console.log(twoPortNumber);
     text = splitText(text, 24);
     var topOffset = 10;
     var middleOffset = 6;
@@ -342,7 +334,6 @@ window.onload = function () {
         switchInfo1 = JSON.parse(data);
         $.post( "switchInfo.php", { connectionMac : switchInfo1.MAC}, function( data ) {
             try {
-                console.log(data);
                 switchConnectionsData = JSON.parse(data);
             } catch(SyntaxError) {
             }
@@ -391,12 +382,31 @@ window.onload = function () {
         stage.addChild(sw.switch);
         // create line
         var line = createLine(sw.port1, router.port);
+        // add line to stage
         stage.addChild(line);
         // create speed
         var speed = createSpeed(switchInfo1.ifspeed, line);
         stage.addChild(speed);
-
+        // push line to list
         lineList.push(line);
+        if(switchConnectionsData != null) {
+            var lPort = sw.port2;
+            for(var i = 1; i < switchConnectionsData.length; i++) {
+                var name =  switchConnectionsData[i].device['name'];
+                var mac =  switchConnectionsData[i].device['MAC'];
+                var portNumberTo =  switchConnectionsData[i-1].connection['port_to'];
+                var portNumberFrom =  switchConnectionsData[i].connection['port_from'];
+                var sw1 = createSwitch(name, mac, portNumberFrom, portNumberTo);
+                var line1 = createLine(sw1.port1, lPort);
+                var speed1 = createSpeed("ttttt", line1); // TODO need to ttttt change to variable
+                lPort = sw1.port2;
+                lineList.push(line1);
+                stage.addChild(line1);
+                stage.addChild(sw1.switch);
+                stage.addChild(speed1);
+            }
+
+        }
         update();
         function update() {
             updateLine();
