@@ -24,7 +24,7 @@ var twoSwPort = null;
 var tableFlag = true;
 var div = null;
 var lineList = [];
-var swTwoObjectJsonData = null;
+var switchConnectionsData = null;
 
 
 
@@ -251,6 +251,7 @@ function createRouter(macText) {
 }
 
 function createSwitch(text, macText, portNumber, twoPortNumber) {
+    console.log(twoPortNumber);
     text = splitText(text, 24);
     var topOffset = 10;
     var middleOffset = 6;
@@ -342,7 +343,7 @@ window.onload = function () {
         $.post( "switchInfo.php", { connectionMac : switchInfo1.MAC}, function( data ) {
             try {
                 console.log(data);
-                swTwoObjectJsonData = JSON.parse(data);
+                switchConnectionsData = JSON.parse(data);
             } catch(SyntaxError) {
             }
         });
@@ -382,8 +383,8 @@ window.onload = function () {
         stage.addChild(router.router);
         // create switch
         var sw = null;
-        if(swTwoObjectJsonData != null) {
-            sw = createSwitch(switchInfo1.name, switchInfo1.MAC, switchInfo1.number, swTwoObjectJsonData.port_to);
+        if(switchConnectionsData != null) {
+            sw = createSwitch(switchInfo1.name, switchInfo1.MAC, switchInfo1.number, switchConnectionsData[0].connection['port_to']);
         } else {
             sw = createSwitch(switchInfo1.name, switchInfo1.MAC, switchInfo1.number);
         }
