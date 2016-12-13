@@ -405,7 +405,7 @@ window.onload = function () {
                 var portNumberFrom =  switchConnectionsData[i].connection['port_from'];
                 var sw1 = createSwitch(name, mac, portNumberFrom, portNumberTo);
                 var line1 = createLine(sw1.port1, lPort);
-                var speed1 = createSpeed("ttttt", line1); // TODO need to ttttt change to variable
+                var speed1 = createSpeed(switchConnectionsData[i].device['ifspeed'], line1); // TODO need to ttttt change to variable
                 lPort = sw1.port2;
                 lineList.push(line1);
                 stage.addChild(line1);

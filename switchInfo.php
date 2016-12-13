@@ -85,7 +85,11 @@ function getConnectionSwitchInfo($mac, $data)
       return $data;
    }
    $data[$index]['connection'] = $conData;
-   $device = $dbh->query("SELECT * FROM `tb_devices` WHERE MAC = '$mac' ", PDO::FETCH_ASSOC);
+   $portNumber = $conData['port_to'];
+   $device = $dbh->query("SELECT * FROM `tb_devices` 
+                	INNER JOIN tb_interfaces 
+                	ON tb_interfaces.device_id = tb_devices.id 
+	   		WHERE MAC = '$mac' and tb_interfaces.number = '$portNumber'", PDO::FETCH_ASSOC);
    $devData = $device->fetch();
    $data[$index]['device'] = $devData;
    return getConnectionSwitchInfo($conData['mac_from'], $data);
