@@ -43,7 +43,7 @@ global $dbh;
 $mac = $_POST['mac']; 
 //$mac = '00:26:5A:39:6E:80';
 
-echo "<table>";
+echo "<table id='portStatusSNMP' class='portStatusSNMP'>";
 echo "<thead>";
 echo "<tr>";
 echo "<th>#</th>";

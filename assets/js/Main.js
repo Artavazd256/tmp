@@ -331,6 +331,24 @@ function showSwitchInfoByMac(mac) {
 }
 
 
+function setDevicePostion(devs)
+{
+    var y = window.innerHeight/2 - devs[0].height/2;
+    var x = 0;
+    console.log(devs);
+   for(var i = devs.length-1; i >= 0; i--)  {
+       var dev = devs[i];
+       dev.x = x;
+       if(i == 0) {
+           dev.y = y-7;
+       } else {
+           dev.y = y;
+       }
+       var w = dev.width;
+       x+=  w + w/2;
+   }
+}
+
 window.onload = function () {
     var routerMac = $('#macForSNMP').attr('value');
     div = document.createElement("div");
@@ -374,10 +392,11 @@ window.onload = function () {
         switchArrowTexture =  res['switchArrow'].texture;
         tweedTexture = res['tweed'].texture;
         // Get router mac address
-
+        var devs = [];
         // router init
         var router = createRouter(routerMac);
         // add router object to stage
+        devs.push(router.router);
         stage.addChild(router.router);
         // create switch
         var sw = null;
@@ -386,6 +405,7 @@ window.onload = function () {
         } else {
             sw = createSwitch(switchInfo1.name, switchInfo1.MAC, switchInfo1.number);
         }
+        devs.push(sw.switch);
         stage.addChild(sw.switch);
         // create line
         var line = createLine(sw.port1, router.port);
@@ -411,9 +431,11 @@ window.onload = function () {
                 stage.addChild(line1);
                 stage.addChild(sw1.switch);
                 stage.addChild(speed1);
+                devs.push(sw1.switch);
             }
 
         }
+        setDevicePostion(devs);
         update();
         function update() {
             updateLine();
