@@ -40,14 +40,15 @@ function splitText(text, n) {
 
 
 
-function getSwtichInfo(mac, text) {
-    if(tableFlag) {
+function getSwtichInfo(mac, text, sw) {
+    if(selectedSwitch == null || selectedSwitch.name != mac || tableFlag) {
         showSwitchInfoByMac(mac, text);
         $(div).show();
         tableFlag = false;
     } else {
         $(div).hide();
         tableFlag = true;
+        sw.alpha = 1;
     }
 }
 
@@ -213,9 +214,9 @@ function switchOnDragStart (event) {
     if(selectedSwitch != null) {
         selectedSwitch.alpha = 1;
     }
-    this.parent.alpha = 0.5;
+    this.parent.alpha = 0.7;
+    getSwtichInfo(this.parent.name, this.parent.text, this.parent);
     selectedSwitch = this.parent;
-    getSwtichInfo(this.parent.name, this.parent.text);
     this.data = event.data;
     this.dragging = true;
     this.dragPoint = event.data.getLocalPosition(this.parent.parent);
