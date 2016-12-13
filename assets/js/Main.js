@@ -21,6 +21,7 @@ var switchConnectionsData = null;
 var WIDTH = null;
 var HEIGHT = null;
 var devs = [];
+var selectedSwitch = null;
 
 
 function splitText(text, n) {
@@ -192,12 +193,10 @@ function routerOnDragEnd() {
 ////// switch
 function switchMouseOver() {
     //this.texture = routerHoverTexture;
-    this.parent.alpha = 0.5;
 }
 
 function switchMouseOut() {
     //this.texture = routerTexture;
-    this.parent.alpha = 1;
 }
 
 function switchMouseMove() {
@@ -211,6 +210,11 @@ function switchMouseMove() {
 }
 
 function switchOnDragStart (event) {
+    if(selectedSwitch != null) {
+        selectedSwitch.alpha = 1;
+    }
+    this.parent.alpha = 0.5;
+    selectedSwitch = this.parent;
     getSwtichInfo(this.parent.name, this.parent.text);
     this.data = event.data;
     this.dragging = true;
