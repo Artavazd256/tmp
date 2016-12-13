@@ -128,9 +128,9 @@ function updateSpeedBoxPosition(swPort1, swPort2, speed) {
     var from = getGlobalPosition(swPort1);
     var to = getGlobalPosition(swPort2);
     if(from.x >= to.x)  {
-        var x = (Math.abs(from.x - to.x)/2)+to.x;
+        var x = (Math.abs(from.x - to.x)/2)+to.x - speed.width/2;
     } else {
-        var x = (Math.abs(from.x - to.x)/2)+from.x;
+        var x = (Math.abs(from.x - to.x)/2)+from.x - speed.width/2;
     }
 
     if(from.y >= to.y)  {
