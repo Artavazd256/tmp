@@ -18,7 +18,9 @@ var tableFlag = true;
 var div = null;
 var lineList = [];
 var switchConnectionsData = null;
-
+var WIDTH = null;
+var HEIGHT = null;
+var devs = [];
 
 
 function splitText(text, n) {
@@ -37,9 +39,9 @@ function splitText(text, n) {
 
 
 
-function getSwtichInfo(mac) {
+function getSwtichInfo(mac, text) {
     if(tableFlag) {
-        showSwitchInfoByMac(mac);
+        showSwitchInfoByMac(mac, text);
         $(div).show();
         tableFlag = false;
     } else {
@@ -161,9 +163,10 @@ function routerMouseOut() {
 }
 
 function routerMouseMove() {
+    return;
     if (this.dragging) {
         var newPosition = this.data.getLocalPosition(this.parent.parent);
-        if(newPosition.y <= this.height/2 || newPosition.x <= this.width/2 || newPosition.x >= window.innerWidth - this.width || newPosition.y >= window.innerHeight-this.height) {
+        if(newPosition.y <= this.height/2 || newPosition.x <= this.width/2 || newPosition.x >= WIDTH - this.width || newPosition.y >= HEIGHT-this.height) {
             return;
         }
         this.parent.position.x = newPosition.x - this.dragPoint.x;
@@ -189,13 +192,16 @@ function routerOnDragEnd() {
 ////// switch
 function switchMouseOver() {
     //this.texture = routerHoverTexture;
+    this.parent.alpha = 0.5;
 }
 
 function switchMouseOut() {
     //this.texture = routerTexture;
+    this.parent.alpha = 1;
 }
 
 function switchMouseMove() {
+    return;
     if (this.dragging) {
         var newPosition = this.data.getLocalPosition(this.parent.parent);
         this.parent.position.x = newPosition.x - this.dragPoint.x;
@@ -205,7 +211,7 @@ function switchMouseMove() {
 }
 
 function switchOnDragStart (event) {
-    getSwtichInfo(this.parent.name);
+    getSwtichInfo(this.parent.name, this.parent.text);
     this.data = event.data;
     this.dragging = true;
     this.dragPoint = event.data.getLocalPosition(this.parent.parent);
@@ -254,6 +260,7 @@ function createSwitch(text, macText, portNumber, twoPortNumber) {
     var middleOffset = 6;
     var sw = new PIXI.Container();
     sw.name = macText;
+    sw.text = text;
     var info = new PIXI.Text(text, {fontFamily : 'Arial', fontSize: '12px Snippet' , fill : 'bleck', align : 'center'});
     var wall = new PIXI.Sprite(tweedTexture);
     var box = createBox("info", 0x00D2FF, info.width+4, info.height);
@@ -324,18 +331,22 @@ function createSwitch(text, macText, portNumber, twoPortNumber) {
 }
 
 
-function showSwitchInfoByMac(mac) {
+function showSwitchInfoByMac(mac, text) {
     $.post( "switchInfo.php", { mac : mac }, function(data ) {
-        div.innerHTML = data;
+        H = document.createElement("h3");
+        $(H).attr('class', 'portStatusHeader');
+        H.innerHTML = mac + text;
+        div.innerHTML = H.outerHTML;
+        $(div).append(data);
     });
 }
 
 
 function setDevicePostion(devs)
 {
-    var y = window.innerHeight/2 - devs[0].height/2;
-    var x = 0;
-    console.log(devs);
+    var y = HEIGHT/2;
+    var W = devs.length >= 2 ? devs[1].width * devs.length + (devs.length - 1) * devs[1].width  / 2: devs[0].width * devs.length;
+    var x  = WIDTH/2-W/2;
    for(var i = devs.length-1; i >= 0; i--)  {
        var dev = devs[i];
        dev.x = x;
@@ -349,6 +360,10 @@ function setDevicePostion(devs)
    }
 }
 
+function setWH() {
+    WIDTH = $('#view').parent().width();
+    HEIGHT = $('#view').parent().height();
+}
 window.onload = function () {
     var routerMac = $('#macForSNMP').attr('value');
     div = document.createElement("div");
@@ -362,10 +377,13 @@ window.onload = function () {
                 switchConnectionsData = JSON.parse(data);
             } catch(SyntaxError) {
             }
+            init();
         });
     });
 
-    renderer = PIXI.autoDetectRenderer(window.innerWidth, window.innerHeight, {
+function init() {
+    setWH();
+    renderer = PIXI.autoDetectRenderer(WIDTH, HEIGHT, {
         backgroundColor: 0xFFFFFF,
         resolution: window.devicePixelRatio || 1
     });
@@ -375,10 +393,10 @@ window.onload = function () {
 
     // resize
     window.addEventListener('resize', function () {
-        renderer.resize(window.innerWidth, window.innerHeight);
+        setWH();
+        renderer.resize(WIDTH, HEIGHT);
+        setDevicePostion(devs);
     });
-
-
     var loader = new PIXI.loaders.Loader();
     loader.add("router", 'assets/img/router.png')
         .add("routerHover", 'assets/img/router-hover.png')
@@ -386,13 +404,14 @@ window.onload = function () {
         .add("tweed", 'assets/img/tweed.png')
         .add("routerSelect", 'assets/img/router-select.png').load(main);
 
+}
+
     function main(loader, res) {
         routerTexture =  res['router'].texture;
         routerHoverTexture =  res['routerHover'].texture;
         switchArrowTexture =  res['switchArrow'].texture;
         tweedTexture = res['tweed'].texture;
         // Get router mac address
-        var devs = [];
         // router init
         var router = createRouter(routerMac);
         // add router object to stage
