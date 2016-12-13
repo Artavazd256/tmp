@@ -94,10 +94,10 @@ function updateLine() {
         var to = getGlobalPosition(lineList[i].to);
         var fromX = from.portPosition == 'left' ? from.x : from.x + lineList[i].from.width  ;
         var fromY = from.y + (lineList[i].from.height/2);
-        lineList[i].moveTo(fromX, fromY); // TODO the case need to improve
+        lineList[i].moveTo(fromX, fromY);
         var toX = to.portPosition == 'left' ? to.x - lineList[i].to.width : to.x ;
         var toY = to.y + (lineList[i].to.height/2);
-        lineList[i].lineTo(toX, toY); // TODO the case need to improve
+        lineList[i].lineTo(toX, toY);
         //line.lineTo(to.x, to.y+routerPort.height/2+size);
         //line.lineTo(from.x+swPort.width, from.y+ swPort.height/2+size);
         lineList[i].endFill();
