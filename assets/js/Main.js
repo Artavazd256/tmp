@@ -92,8 +92,12 @@ function updateLine() {
         lineList[i].lineStyle(6, 0x808080, 1);
         var from = getGlobalPosition(lineList[i].from);
         var to = getGlobalPosition(lineList[i].to);
-        lineList[i].moveTo(from.x, from.y); // TODO the case need to improve
-        lineList[i].lineTo(to.x, to.y); // TODO the case need to improve
+        var fromX = from.portPosition == 'left' ? from.x : from.x + lineList[i].from.width  ;
+        var fromY = from.y + (lineList[i].from.height/2);
+        lineList[i].moveTo(fromX, fromY); // TODO the case need to improve
+        var toX = to.portPosition == 'left' ? to.x - lineList[i].to.width : to.x ;
+        var toY = to.y + (lineList[i].to.height/2);
+        lineList[i].lineTo(toX, toY); // TODO the case need to improve
         //line.lineTo(to.x, to.y+routerPort.height/2+size);
         //line.lineTo(from.x+swPort.width, from.y+ swPort.height/2+size);
         lineList[i].endFill();
@@ -240,6 +244,7 @@ function createRouter(macText) {
     boxMac.x -=  29
     mac.x -= 29;
     router.addChild(mac);
+    boxMac.portPosition = 'left';
     return {router: router, port: boxMac};
 }
 
@@ -313,6 +318,8 @@ function createSwitch(text, macText, portNumber, twoPortNumber) {
     wall.touchendoutside =switchOnDragEnd;
     wall.touchend = switchOnDragEnd;
     wall.mousemove = switchMouseMove;
+    swPort.portPosition = "right";
+    twoSwPort.portPosition = 'left';
     return {port1 : swPort, port2 : twoSwPort, switch: sw};
 }
 
