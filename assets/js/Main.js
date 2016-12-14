@@ -36,7 +36,7 @@ function splitText(text, n) {
         counter++;
     }
     return t;
-};
+}
 
 
 
@@ -48,7 +48,7 @@ function getSwtichInfo(mac, text, sw) {
     } else {
         $(div).hide();
         tableFlag = true;
-        sw.alpha = 1;
+        sw.border.visible = false;
     }
 }
 
@@ -60,6 +60,17 @@ function createBox (name, color, width, height, border) {
     graphics.endFill();
     graphics.name = name;
     graphics.hitArea = new PIXI.Rectangle(0, 0, width, height);
+    return graphics;
+}
+
+function createBorder (name, alpha, color, width, height, x, y) {
+    var graphics = new PIXI.Graphics();
+    graphics.lineStyle(7, color, alpha);
+    //graphics.drawRect(x, y, width, height);
+    graphics.drawRoundedRect(x,y, width, height, 8);
+    graphics.alpha = 1 ;
+    graphics.endFill();
+    graphics.name = name;
     return graphics;
 }
 
@@ -212,10 +223,10 @@ function switchMouseMove() {
 
 function switchOnDragStart (event) {
     if(selectedSwitch != null) {
-        selectedSwitch.alpha = 1;
+        selectedSwitch.getChildByName("border").visible = false;
     }
-    this.parent.alpha = 0.7;
-    getSwtichInfo(this.parent.name, this.parent.text, this.parent);
+    this.border.visible = true;
+    getSwtichInfo(this.parent.name, this.parent.text, this);
     selectedSwitch = this.parent;
     this.data = event.data;
     this.dragging = true;
@@ -302,7 +313,7 @@ function createSwitch(text, macText, portNumber, twoPortNumber) {
         sw.addChild(twoPortText);
     }
     sw.addChild(portText);
-    arrow.y -= topOffset + 30;
+    arrow.y -= topOffset + 35;
     arrow.x = (sw.width/2) - (arrow.width/2);
     box.x = (sw.width/2) - (box.width/2);
     info.x = (sw.width/2) - (info.width/2);
@@ -313,12 +324,12 @@ function createSwitch(text, macText, portNumber, twoPortNumber) {
     wall.height = info.height + box.height + boxMac.height;
     swPort.y = wall.height/2-(swPort.height/2);
     portText.y = wall.height/2 - (portText.height/2);
-    swPort.x = wall.width+2;
-    portText.x = wall.width+2+2;
+    swPort.x = wall.width+7;
+    portText.x = wall.width+7+2;
     twoSwPort.y = wall.height/2-(swPort.height/2);
     twoPortText.y = wall.height/2 - (portText.height/2);
-    twoPortText.x -= twoSwPort.width +2 - twoPortText.width/2;
-    twoSwPort.x -=   twoSwPort.width +2;
+    twoPortText.x -= twoSwPort.width +7 - twoPortText.width/2;
+    twoSwPort.x -=   twoSwPort.width +7;
     wall.buttonMode = true;
     wall.interactive = true;
     wall.mouseover = switchMouseOver;
@@ -332,6 +343,12 @@ function createSwitch(text, macText, portNumber, twoPortNumber) {
     wall.mousemove = switchMouseMove;
     swPort.portPosition = "right";
     twoSwPort.portPosition = 'left';
+    var border1 = createBorder("border1", 0.9, 0x505050, wall.width+6, wall.height+6, -3, -3);
+    var border = createBorder("border", 0.9, 0x00D2FF, wall.width+6, wall.height+6, -3, -3);
+    border.visible = false;
+    sw.addChild(border1);
+    sw.addChild(border);
+    wall.border = border;
     return {port1 : swPort, port2 : twoSwPort, switch: sw};
 }
 
