@@ -82,7 +82,15 @@ function getConnectionSwitchInfo($mac, $data)
    $index = count($data);
    if(empty($conData)) 
    {
-      return $data;
+   		$index = count($data);
+   		$data[$index]['connection'] = array();
+   		$device = $dbh->query("SELECT * FROM `tb_devices` 
+                	INNER JOIN tb_interfaces 
+                	ON tb_interfaces.device_id = tb_devices.id 
+	   		WHERE MAC = '$mac'", PDO::FETCH_ASSOC);
+   		$devData = $device->fetch();
+   		$data[$index]['device'] = $devData;
+		return $data;
    }
    $data[$index]['connection'] = $conData;
    $portNumber = $conData['port_to'];

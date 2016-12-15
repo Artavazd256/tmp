@@ -459,10 +459,10 @@ function init() {
         lineList.push(line);
         if(switchConnectionsData != null) {
             var lPort = sw.port2;
-            for(var i = 1; i < switchConnectionsData.length; i++) {
-                var name =  switchConnectionsData[i].device['name'];
-                var mac =  switchConnectionsData[i].device['MAC'];
-                var portNumberTo =  switchConnectionsData[i-1].connection['port_to'];
+            for(var i = 0; i < switchConnectionsData.length - 1; i++) {
+                var name =  switchConnectionsData[i+1].device['name'];
+                var mac =  switchConnectionsData[i+1].device['MAC'];
+                var portNumberTo =  switchConnectionsData[i+1].connection['port_to'];
                 var portNumberFrom =  switchConnectionsData[i].connection['port_from'];
                 var sw1 = createSwitch(name, mac, portNumberFrom, portNumberTo);
                 var line1 = createLine(sw1.port1, lPort);
